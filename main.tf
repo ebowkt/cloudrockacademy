@@ -19,7 +19,7 @@ enable_dns_support = true
 # create public subnet
 resource "aws_subnet" "Prod-pub-sub1" {
   vpc_id     = aws_vpc.Tenacity-VPC.id
-  cidr_block = "10.0.1.0/24"
+  cidr_block = "10.0.5.0/24"
 availability_zone = "eu-west-2a"
 
   tags = {
@@ -29,7 +29,7 @@ availability_zone = "eu-west-2a"
 
 resource "aws_subnet" "Prod-pub-sub2" {
   vpc_id     = aws_vpc.Tenacity-VPC.id
-  cidr_block = "10.0.2.0/24"
+  cidr_block = "10.0.6.0/24"
 availability_zone = "eu-west-2b"
 
   tags = {
@@ -41,7 +41,7 @@ availability_zone = "eu-west-2b"
 # create private subnet
 resource "aws_subnet" "Prod-priv-sub1" {
   vpc_id     = aws_vpc.Tenacity-VPC.id
-  cidr_block = "10.0.3.0/24"
+  cidr_block = "10.0.7.0/24"
 availability_zone = "eu-west-2c"
 
   tags = {
@@ -51,7 +51,7 @@ availability_zone = "eu-west-2c"
 
 resource "aws_subnet" "Prod-priv-sub2" {
   vpc_id     = aws_vpc.Tenacity-VPC.id
-  cidr_block = "10.0.4.0/24"
+  cidr_block = "10.0.8.0/24"
 availability_zone = "eu-west-2b"
 
   tags = {
@@ -123,44 +123,19 @@ route {
 }
 
 
-# Creating an Elastic IP for the NAT Gateway!
-resource "aws_eip" "Nat-Gateway-EIP" {
-  depends_on = [
-    aws_internet_gateway.Prod-igw
-  ]
-  vpc = true
-}
+# create ec2 for public subnet
+resource "aws_instance" "Rock-server-1" {
+    ami = "ami-0f3497daebf127026"
+    count = "1"
+    subnet_id = aws_subnet.Prod-pub-sub1.id
+    instance_type = "t2.micro"
+} 
 
 
-# Creating a NAT Gateway!
-resource "aws_nat_gateway" "Prod-Nat-gateway" {
-  depends_on = [
-    aws_eip.Nat-Gateway-EIP
-  ]
-
-  # Allocating the Elastic IP to the NAT Gateway!
-  allocation_id = aws_eip.Nat-Gateway-EIP.id
-  
-  # Associating it in the Public Subnet!
-  subnet_id = aws_subnet.Prod-pub-sub1.id
-  tags = {
-    Name = "Prod-Nat-gateway"
-  }
-}
-
-
-
-# Creating an Route Table Association of the NAT Gateway 
-# with the Private Subnet!
-resource "aws_nat_gateway" "Nat-Gateway-Association" {
-  depends_on = [
-    aws_internet_gateway.Prod-igw
-  ]
-
-#  Private Subnet ID for adding this route table to the DHCP server of Private subnet!
-  connectivity_type = "private"
-  subnet_id         = aws_subnet.Prod-priv-sub2.id
-}
-
-
-
+# create ec2 for private subnet
+resource "aws_instance" "Rock-server-2" {
+    ami = "${var.ami_id}"
+    count = "${var.number_of_instances}"
+    subnet_id = aws_subnet.Prod-priv-sub2.id
+    instance_type = "${var.instance_type}"
+} 
