@@ -4,10 +4,10 @@
 # Create a VPC
 
 resource "aws_vpc" "Tenacity-VPC" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
-enable_dns_hostnames = true
-enable_dns_support = true
+  cidr_block       = var.vpc_cidr
+  instance_tenancy = var.instance_ten
+enable_dns_hostnames = var.dns_hostnames
+enable_dns_support = var.dns_support
 
   tags = {
     Name = "Tenacity-VPC"
